@@ -1,0 +1,35 @@
+set(JEMALLOC_SRC
+        src/arena.c
+        src/background_thread.c
+        src/base.c
+        src/bin.c
+        src/bitmap.c
+        src/ckh.c
+        src/ctl.c
+        src/div.c
+        src/extent.c
+        src/extent_dss.c
+        src/extent_mmap.c
+        src/hash.c
+        src/hooks.c
+        src/jemalloc.c
+        src/jemalloc_cpp.cpp
+        src/large.c
+        src/log.c
+        src/malloc_io.c
+        src/mutex.c
+        src/mutex_pool.c
+        src/nstime.c
+        src/pages.c
+        src/prng.c
+        src/prof.c
+        src/rtree.c
+        src/stats.c
+        src/sz.c
+        src/tcache.c
+        src/ticker.c
+        src/tsd.c
+        src/witness.c
+        src/zone.c)
+
+add_library(jemalloc STATIC ${JEMALLOC_SRC})
