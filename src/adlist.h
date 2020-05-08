@@ -31,19 +31,47 @@
 #ifndef __ADLIST_H__
 #define __ADLIST_H__
 
-/* Node, List, and Iterator are the only data structures used currently. */
+/**
+ * redis中链表数据结构应用于：
+ * * 列表键
+ * * 发布与订阅
+ * * 慢查询
+ * * 监视器等
+ */
 
+/* Node, List, and Iterator are the only data structures used currently. */
+/**
+ * 链表结点
+ * redis中链表的结构是双向链表，
+ * 包含了prev和next指针
+ * 除此之外，链表结点中还包含了一个void指针value
+ * 这个指针指向链表结点的数据域
+ * 因为指针是void类型的，所以在redis中，
+ * 链表结点的数据可以是任意类型的
+ */
 typedef struct listNode {
     struct listNode *prev;
     struct listNode *next;
     void *value;
 } listNode;
 
+/**
+ * 链表的迭代器
+ * 方便访问
+ * 因为是双向链表，所以多添加了一个int类型的成员变量来指明迭代的方向
+ */
 typedef struct listIter {
     listNode *next;
     int direction;
 } listIter;
 
+/**
+ * 链表的数据结构
+ * 包含了链表头和链表尾指针
+ * 还包含了三个指向链表操作的函数指针
+ * 和sds类型一样，为了在O(1)时间复杂度下获取链表长度，
+ * 在链表数据结构中也包含了链表长度len变量
+ */
 typedef struct list {
     listNode *head;
     listNode *tail;
