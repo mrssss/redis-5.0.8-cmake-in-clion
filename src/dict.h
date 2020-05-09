@@ -44,6 +44,18 @@
 /* Unused arguments generate annoying warnings... */
 #define DICT_NOTUSED(V) ((void) V)
 
+/**
+ * 哈希表中的表项
+ * key：键
+ * union{...}：值
+ * next：指向下一个哈希表项，形成链表
+ *
+ * 哈希表中的值可以是空指针、无符号整数、有符号整数、双精度浮点数
+ *
+ * next指针可以指向下一个哈希表节点，
+ * 哈希表中的每一个表项都指向了一个单链表结构，
+ * 是用来解决键冲突的问题的
+ */
 typedef struct dictEntry {
     void *key;
     union {
@@ -55,6 +67,15 @@ typedef struct dictEntry {
     struct dictEntry *next;
 } dictEntry;
 
+/**
+ * 保存了一簇用于操作特定类型键值对的函数
+ * hashFunction：计算哈希值的函数
+ * keyDup：复制键的函数
+ * valDup：复制值的函数
+ * keyCompare：对比键的函数
+ * keyDestructor：销毁键的函数
+ * valDestructor：销毁值的函数
+ */
 typedef struct dictType {
     uint64_t (*hashFunction)(const void *key);
     void *(*keyDup)(void *privdata, const void *key);
@@ -66,6 +87,13 @@ typedef struct dictType {
 
 /* This is our hash table structure. Every dictionary has two of this as we
  * implement incremental rehashing, for the old to the new table. */
+/**
+ * 哈希表数据结构
+ * table：哈希表数组，其中每一项包含了一个指向dictEntry的指针
+ * size：哈希表大小
+ * sizemask：哈希表大小掩码，用于计算索引值
+ * used：该哈希表中已有结点的数量
+ */
 typedef struct dictht {
     dictEntry **table;
     unsigned long size;
@@ -73,6 +101,14 @@ typedef struct dictht {
     unsigned long used;
 } dictht;
 
+/**
+ * 字典数据结构
+ * type：dictType，包含了一簇指向操作特定键值对数据函数的函数指针
+ * privdata：保存了需要传给哪些类型特定函数的可选参数（传给type中函数的）
+ * ht：存了两个哈希表，字典使用第一个哈希表，第二个哈希表是对ht[0]进行rehash操作的时候使用的
+ * rehashidx：不进行rehash时，该值为-1
+ * iterators：正在运行的iterator的个数
+ */
 typedef struct dict {
     dictType *type;
     void *privdata;
@@ -85,6 +121,12 @@ typedef struct dict {
  * dictAdd, dictFind, and other functions against the dictionary even while
  * iterating. Otherwise it is a non safe iterator, and only dictNext()
  * should be called while iterating. */
+/**
+ * 如果只有一个迭代器，那么这是一个安全的迭代器
+ * 这意味着，即使在迭代的过程中，
+ * 你仍然可以使用dictAdd、dictFind和其他的一些函数来操作字典
+ * 否则，就有多个迭代器在运行，除了使用dictNext函数，其他的函数则不再安全
+ */
 typedef struct dictIterator {
     dict *d;
     long index;

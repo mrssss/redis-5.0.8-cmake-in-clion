@@ -808,6 +808,38 @@ struct sharedObjectsStruct {
 };
 
 /* ZSETs use a specialized version of Skiplists */
+/**
+ * 跳跃表是一种有序的数据结构
+ * 它通过在每个节点中维持多个指向其他节点的指针，
+ * 从而达到快速访问节点的目的
+ * 跳跃表支持平均O(logN)、最坏O(N)时间复杂度的节点查找
+ * 还可以通过顺序行操作来批量处理节点
+ * 在大部分情况下，跳跃表的效率可以和平衡树相媲美
+ * 并且因为跳跃表的实现比平衡树要来的更为简单
+ * 所以有不少程序都使用跳跃表来代替平衡树
+ */
+
+/**
+ * Redis使用跳跃表作为有序集合键的底层实现之一，
+ * 如果一个有序集合包含的元素数量比较多
+ * 又或者有序集合中元素的成员是比较长的字符串
+ * Redis就会使用跳跃表来作为有序集合键的底层实现
+ */
+
+/**
+ * 1. 有序集合键
+ * 2. 在集群节点中用作内部数据结构
+ */
+
+/**
+ * 跳跃表的节点
+ * ele：节点数据
+ * score：节点分值，跳跃表按照分值进行排序
+ * backward：指向位于当前节点的前一个节点，在从表尾到表头遍历时使用
+ * level：标记节点在每一层的属性
+ *      forward：在当前层的下一个节点的指针
+ *      span：下一个节点和本节点的跨度
+ */
 typedef struct zskiplistNode {
     sds ele;
     double score;
@@ -818,6 +850,13 @@ typedef struct zskiplistNode {
     } level[];
 } zskiplistNode;
 
+/**
+ * 保存跳跃表的相关信息
+ * header：指向跳跃表的表头节点
+ * tail：指向跳跃表的表尾节点
+ * length：记录跳跃表达的长度，跳跃表目前包含节点的数量
+ * level：记录目前跳跃表内，层数最大的那个节点的层数
+ */
 typedef struct zskiplist {
     struct zskiplistNode *header, *tail;
     unsigned long length;
