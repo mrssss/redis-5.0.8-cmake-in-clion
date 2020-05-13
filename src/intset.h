@@ -32,6 +32,20 @@
 #define __INTSET_H
 #include <stdint.h>
 
+/**
+ * 整数集合是集合键的底层实现之一，当一个集合只包含整数值元素
+ * 并且这个集合的元素数量不多时，
+ * Redis就会使用整数集合作为集合键的底层实现
+ */
+
+/**
+ * encoding：编码方式
+ * length：整数集合包含的元素数量（contents数组的长度）
+ * contents：整数集合实际存的内容。contents被定义为int_8类型的数组，
+ *          但实际上是根据encoding的值来决定存储的是什么类型的值
+ *          这里实际上是和sds中的buf数组一样，只是一个柔性数组成员
+ *          用来占位置的
+ */
 typedef struct intset {
     uint32_t encoding;
     uint32_t length;

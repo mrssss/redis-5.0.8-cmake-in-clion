@@ -40,14 +40,67 @@ extern const char *SDS_NOINIT;
 #include <stdarg.h>
 #include <stdint.h>
 
+/**
+ * sds被定义成一个指向char的指针
+ * 一般用来指向sdshdr中的buf成员，
+ * 通过减去sdshdr的长度可以获取指向sdshdr结构的指针
+ */
 typedef char *sds;
+
+/**
+ * SDS与C字符串的区别：
+ * 1. 常数复杂度获取字符串长度
+ *      直接访问len就可以得到字符串的长度
+ * 2. 杜绝缓冲区溢出
+ *      在对字符串进行append或strcat之类操作的时候
+ *      redis会检查已分配的字符串长度，如果长度不够，
+ *      会重新申请一段内存进行操作
+ * 3. 减少修改字符串时带来的内存重分配次数
+ *      只有在内存空间不够的时候才会重新分配内存
+ * 4. 二进制安全
+ *      所有sds api都会以处理二进制的方式来处理sds中
+ *      存放在buf里的数据，程序不会对其中的数据做任何
+ *      的限制、过滤、或者假设；数据被写入的时候是什么
+ *      样子的，它被读取的时候就是什么样子的。
+ *      在使用sds存储二进制数据的时候，redis是使用len
+ *      来确定buf的长度的，而不是使用空字符来判断
+ * 5. 兼容部分C字符串函数
+ *      在对SDS进行字符串操作的时候，会把buf字节数组当
+ *      作字符数组来进行操作
+ */
+
+/**
+ * sdshdr结构中的buf
+ * 这里的buf是一个柔性数组成员（flexible array member）
+ * 定义结构体的时候并不知道实际结构体的大小,
+ * buf只是一个符号占位符，并不会像指针一样占用内存空间。
+ *
+ * 柔性数组成员：
+ * 1. 结构中，柔性数组之前至少有一个成员
+ * 2. 只能在结构的结尾
+ * 3. 允许结构中包含一个可变大小的数组
+ * 4. sizeof结构，返回值中不包含柔性数组的大小
+ * 5. 给结构实际分配的内存应该比这里定义的大
+ */
 
 /* Note: sdshdr5 is never used, we just access the flags byte directly.
  * However is here to document the layout of type 5 SDS strings. */
+/**
+ * sdshdr5不是真正被用到的数据结构，这里定义一个sdshdr5的数据结构只是为了方便
+ * 直接访问flags字节。
+ * 为了后面的定义的宏的一致，这里也把这个数据结构叫做sdshdr5。
+ */
 struct __attribute__ ((__packed__)) sdshdr5 {
     unsigned char flags; /* 3 lsb of type, and 5 msb of string length */
     char buf[];
 };
+
+/**
+ * redis中根据实际使用到的数据长度定义了4中sds类型
+ * 他们的区别在于结构体头的长度，
+ * 实际分配的数组没那么大，那么存储他们长度的整数就没有必要那么长
+ * flags成员指明了具体用到的sds的结构是多长的。
+ */
 struct __attribute__ ((__packed__)) sdshdr8 {
     uint8_t len; /* used */
     uint8_t alloc; /* excluding the header and null terminator */
@@ -78,9 +131,21 @@ struct __attribute__ ((__packed__)) sdshdr64 {
 #define SDS_TYPE_16 2
 #define SDS_TYPE_32 3
 #define SDS_TYPE_64 4
+/**
+ * 7 == 0b111
+ * (flags & SDS_TYPE_MASK)用来计算sdshdr结构的类型
+ */
 #define SDS_TYPE_MASK 7
 #define SDS_TYPE_BITS 3
+/**
+ * 在hiredis的sds.h中有用到，
+ * 定义一个sdshdr类型的变量sh变量，
+ * 通过指向char数组的指针s来计算sh指针的值
+ */
 #define SDS_HDR_VAR(T,s) struct sdshdr##T *sh = (void*)((s)-(sizeof(struct sdshdr##T)));
+/**
+ * 通过指向char数组的指针s来获取指向sdshdr结构的指针
+ */
 #define SDS_HDR(T,s) ((struct sdshdr##T *)((s)-(sizeof(struct sdshdr##T))))
 #define SDS_TYPE_5_LEN(f) ((f)>>SDS_TYPE_BITS)
 

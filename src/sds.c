@@ -157,11 +157,20 @@ sds sdsnew(const char *init) {
 }
 
 /* Duplicate an sds string. */
+/**
+ * 创建一个给定sds的副本
+ * @param s: 原sds
+ * @return: sds的副本
+ */
 sds sdsdup(const sds s) {
     return sdsnewlen(s, sdslen(s));
 }
 
 /* Free an sds string. No operation is performed if 's' is NULL. */
+/**
+ * 释放sds占用的空间
+ * @param s
+ */
 void sdsfree(sds s) {
     if (s == NULL) return;
     s_free((char*)s-sdsHdrSize(s[-1]));
